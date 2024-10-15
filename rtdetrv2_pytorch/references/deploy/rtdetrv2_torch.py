@@ -1,6 +1,7 @@
 """Copyright(c) 2023 lyuwenyu. All Rights Reserved.
 """
 
+import time
 import os
 
 os.sys.path.insert(
@@ -10,9 +11,6 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as T
 
-import numpy as np
-from tqdm.auto import tqdm
-from glob import glob
 from PIL import Image, ImageDraw
 
 from src.core import YAMLConfig
@@ -21,7 +19,7 @@ from util import remove_high_overlap_bboxes
 COLOR = {0: "green", 1: "blue", 2: "red"}
 
 
-def draw(images, labels, boxes, scores, img_name, thrh=0.68, output_folder="exp"):
+def draw(images, labels, boxes, scores, thrh=0.68):
     for i, im in enumerate(images):
         draw = ImageDraw.Draw(im)
 
@@ -52,9 +50,10 @@ def draw(images, labels, boxes, scores, img_name, thrh=0.68, output_folder="exp"
                 fill=COLOR[lab[j].item()],
             )
 
-        im.save(f"{output_folder}/{img_name}")
+        im.save(f"results_{i}.jpg")
 
 
+@torch.no_grad()
 def main(
     args,
 ):
@@ -89,26 +88,33 @@ def main(
     model = Model().to(args.device)
     model.eval()
 
-    os.makedirs(args.o, exist_ok=True)
+    print("Model:", args.resume)
 
-    for img in tqdm(glob(f"{args.im_file}/*.jpg")):
-        img_name = os.path.basename(img)
-        im_pil = Image.open(img).convert("RGB")
-        w, h = im_pil.size
-        orig_size = torch.tensor([w, h])[None].to(args.device)
-
-        transforms = T.Compose(
-            [
-                T.Resize((640, 640)),
-                T.ToTensor(),
-            ]
+    # Warmup
+    for _ in range(10):
+        _ = model(
+            torch.randn(1, 3, 640, 640).to(args.device),
+            torch.tensor([[640, 640]]).to(args.device),
         )
-        im_data = transforms(im_pil)[None].to(args.device)
 
-        output = model(im_data, orig_size)
-        labels, boxes, scores = output
+    im_pil = Image.open(args.im_file).convert("RGB")
+    w, h = im_pil.size
+    orig_size = torch.tensor([w, h])[None].to(args.device)
 
-        draw([im_pil], labels, boxes, scores, output_folder=args.o, img_name=img_name)
+    transforms = T.Compose(
+        [
+            T.Resize((640, 640)),
+            T.ToTensor(),
+        ]
+    )
+    im_data = transforms(im_pil)[None].to(args.device)
+
+    start = time.time()
+    output = model(im_data, orig_size)
+    print("Inference time:", time.time() - start)
+    labels, boxes, scores = output
+
+    draw([im_pil], labels, boxes, scores, thrh=args.threshold)
 
 
 if __name__ == "__main__":
@@ -130,28 +136,8 @@ if __name__ == "__main__":
         "--im-file",
         type=str,
     )
-    parser.add_argument(
-        "-o",
-        type=str,
-    )
     parser.add_argument("-d", "--device", type=str, default="cpu")
-    args = parser.parse_args(
-        [
-            "-c",
-            # "configs/rtdetrv2/rtdetrv2_r18vd_120e_coco.yml",  # S
-            # "configs/rtdetrv2/rtdetrv2_r50vd_m_7x_coco.yml",  # M
-            "configs/rtdetrv2/rtdetrv2_r101vd_6x_coco.yml",  # X
-            "-r",
-            # "./best_S.pth",
-            # "./best_M.pth",
-            "./best_X.pth",
-            "-f",
-            "test_outside",
-            "-o",
-            "exp/X",
-            "--device",
-            "cuda:0",
-        ]
-    )
+    parser.add_argument("--threshold", type=float, default=0.68)
+    args = parser.parse_args()
 
     main(args)
