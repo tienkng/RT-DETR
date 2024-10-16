@@ -18,8 +18,8 @@ train_dataloader:
   type: DataLoader
   dataset: 
     type: CocoDetection
-    img_folder: ../datasets/CrowdHuman_2k/images
-    ann_file: ../datasets/CrowdHuman_2k/annotations/train.json
+    img_folder: ../datahub/merge_data_15102024/images/train
+    ann_file: ../datahub/annotation_merge_data_15102024/train.json
     return_masks: False
     transforms:
       type: Compose
@@ -35,8 +35,8 @@ val_dataloader:
   type: DataLoader
   dataset: 
     type: CocoDetection
-    img_folder: ../datasets/CrowdHuman_2k/images
-    ann_file: ../datasets/CrowdHuman_2k/annotations/val.json
+    img_folder: ../datahub/merge_data_15102024/images/val
+    ann_file: ../datahub/annotation_merge_data_15102024/val.json
     return_masks: False
     transforms:
       type: Compose

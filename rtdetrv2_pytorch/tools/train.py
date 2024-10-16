@@ -89,17 +89,17 @@ if __name__ == "__main__":
         [
             "-c",
             # "configs/rtdetrv2/rtdetrv2_r18vd_120e_coco.yml",  # S
-            # "configs/rtdetrv2/rtdetrv2_r50vd_m_7x_coco.yml",  # M
-            "configs/rtdetrv2/rtdetrv2_r101vd_6x_coco.yml",  # X
-            # "-t",
-            # "./rtdetrv2_r101vd_6x_coco_from_paddle.pth",
-            "-r",
+            "configs/rtdetrv2/rtdetrv2_r50vd_m_7x_coco.yml",  # M
+            # "configs/rtdetrv2/rtdetrv2_r101vd_6x_coco.yml",  # X
+            "-t",
+            "rtdetrv2_r101vd_6x_coco_from_paddle.pth",
+            # "-r",
             # "./best_S.pth",
             # "./best_M.pth",
-            "./best_X.pth",
+            # "./best_X.pth",
             "--use-amp",
             "--seed=0",
-            "--test-only",
+            # "--test-only",
         ]
     )
 

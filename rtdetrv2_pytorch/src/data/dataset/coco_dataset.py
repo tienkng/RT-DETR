@@ -283,7 +283,7 @@ class ConvertCocoPolysToMask(object):
 #     89: 'hair drier',
 #     90: 'toothbrush'
 # }
-mscoco_category2name = {0: "Female", 1: "Male", 2: "Body"}
+mscoco_category2name = {1: "Female", 2: "Male", 3: "Body"}
 
 mscoco_category2label = {k: i for i, k in enumerate(mscoco_category2name.keys())}
 mscoco_label2category = {v: k for k, v in mscoco_category2label.items()}
